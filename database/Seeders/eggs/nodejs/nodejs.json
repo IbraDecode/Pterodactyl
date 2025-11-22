@@ -1,0 +1,90 @@
+{
+  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2025-05-03T10:00:00+07:00",
+  "name": "Bot Whatsapp & Bot Telegram",
+  "author": "ibradecode@gmail.com",
+  "description": "Egg untuk bot WhatsApp dengan dukungan Node.js 15-23. Disusun oleh Ibra.",
+  "features": null,
+  "docker_images": {
+    "Node.js 20": "ghcr.io/parkervcp/yolks:nodejs_20",
+    "Node.js 15": "ghcr.io/parkervcp/yolks:nodejs_15",
+    "Node.js 16": "ghcr.io/parkervcp/yolks:nodejs_16",
+    "Node.js 17": "ghcr.io/parkervcp/yolks:nodejs_17",
+    "Node.js 18": "ghcr.io/parkervcp/yolks:nodejs_18",
+    "Node.js 19": "ghcr.io/parkervcp/yolks:nodejs_19",
+    "Node.js 21": "ghcr.io/parkervcp/yolks:nodejs_21",
+    "Node.js 22": "ghcr.io/parkervcp/yolks:nodejs_22",
+    "Node.js 23": "ghcr.io/parkervcp/yolks:nodejs_23"
+  },
+  "file_denylist": [],
+  "startup": "if [[ -d .git ]] && [[ {{AUTO_UPDATE}} == \"1\" ]]; then git pull; fi; if [[ ! -z ${NODE_PACKAGES} ]]; then /usr/local/bin/npm install ${NODE_PACKAGES}; fi; if [[ ! -z ${UNNODE_PACKAGES} ]]; then /usr/local/bin/npm uninstall ${UNNODE_PACKAGES}; fi; if [ -f /home/container/package.json ]; then /usr/local/bin/npm install; fi; if [[ ! -z ${CUSTOM_ENVIRONMENT_VARIABLES} ]]; then vars=$(echo ${CUSTOM_ENVIRONMENT_VARIABLES} | tr \";\" \"\\n\"); for line in $vars; do export $line; done fi; /usr/local/bin/${CMD_RUN};",
+  "config": {
+    "files": "{}",
+    "startup": "{\n    \"done\": \"running\"\n}",
+    "logs": "{}",
+    "stop": "^^C"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\napt update\napt install -y git curl jq file unzip make gcc g++ python python-dev libtool\nmkdir -p /mnt/server\ncd /mnt/server\n\nif [ \"${USER_UPLOAD}\" == \"true\" ] || [ \"${USER_UPLOAD}\" == \"1\" ]; then\n    echo -e \"assuming user knows what they are doing.\"\n    exit 0\nfi\n\nif [[ ${GIT_ADDRESS} != *.git ]]; then\n    GIT_ADDRESS=${GIT_ADDRESS}.git\nfi\n\nif [ -z \"${USERNAME}\" ] && [ -z \"${ACCESS_TOKEN}\" ]; then\n    echo -e \"using anon api call\"\nelse\n    GIT_ADDRESS=\"https://${USERNAME}:${ACCESS_TOKEN}@$(echo -e ${GIT_ADDRESS} | cut -d/ -f3-)\"\nfi\n\nif [ \"$(ls -A /mnt/server)\" ]; then\n    echo -e \"/mnt/server is not empty.\"\n    if [ -d .git ]; then\n        echo -e \".git directory exists\"\n        if [ -f .git/config ]; then\n            ORIGIN=$(git config --get remote.origin.url)\n        else\n            exit 10\n        fi\n    fi\n    if [ \"${ORIGIN}\" == \"${GIT_ADDRESS}\" ]; then\n        git pull\n    fi\nelse\n    if [ -z ${BRANCH} ]; then\n        git clone ${GIT_ADDRESS} .\n    else\n        git clone --single-branch --branch ${BRANCH} ${GIT_ADDRESS} .\n    fi\nfi\n\nif [[ ! -z ${NODE_PACKAGES} ]]; then\n    /usr/local/bin/npm install ${NODE_PACKAGES}\nfi\n\nif [ -f /mnt/server/package.json ]; then\n    /usr/local/bin/npm install --production\nfi\n\necho -e \"install complete\"\nexit 0",
+      "container": "node:14-buster-slim",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Git Repo Address",
+      "description": "Contoh: https://github.com/user/repo",
+      "env_variable": "GIT_ADDRESS",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Install Branch",
+      "description": "Branch yang akan di-clone.",
+      "env_variable": "BRANCH",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Git Username",
+      "description": "Username Git (untuk repo private).",
+      "env_variable": "USERNAME",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Git Access Token",
+      "description": "Gunakan Personal Access Token dari GitHub atau GitLab.",
+      "env_variable": "ACCESS_TOKEN",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Command Run",
+      "description": "Perintah untuk menjalankan bot (default: npm start).",
+      "env_variable": "CMD_RUN",
+      "default_value": "npm start",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string",
+      "field_type": "text"
+    }
+  ]
+}
